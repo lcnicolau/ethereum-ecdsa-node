@@ -59,6 +59,7 @@ input {
   letter-spacing: 1px;
   font-weight: 400;
   font-size: .9em;
+  justify-content: center;
   &:hover {
     cursor: pointer;
   }
@@ -78,6 +79,11 @@ input {
     padding: 0.75rem;
     background-color: #f4f6f8;
   }
+}
+
+.welcome {
+  display: flex;
+  flex-direction: column;
 }
 
 .transfer {

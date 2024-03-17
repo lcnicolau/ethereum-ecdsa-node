@@ -7,11 +7,14 @@ const process = require("child_process");
 app.use(cors());
 app.use(express.json());
 
-const balances = {
-  "0x1": 100,
-  "0x2": 50,
-  "0x3": 75,
-};
+const balances = {};
+
+app.get("/welcome/:address", (req, res) => {
+  const { address } = req.params;
+  const balance = balances[address] || 100;
+  balances[address] = balance;
+  res.send({ balance });
+});
 
 app.get("/balance/:address", (req, res) => {
   const { address } = req.params;
@@ -21,14 +24,11 @@ app.get("/balance/:address", (req, res) => {
 
 app.post("/send", (req, res) => {
   const { sender, recipient, amount } = req.body;
-
-  setInitialBalance(sender);
-  setInitialBalance(recipient);
-
   if (balances[sender] < amount) {
     res.status(400).send({ message: "Not enough funds!" });
   } else {
     balances[sender] -= amount;
+    balances[recipient] = balances[recipient] || 0;
     balances[recipient] += amount;
     res.send({ balance: balances[sender] });
   }
@@ -38,9 +38,3 @@ app.listen(port, () => {
   console.log(`Listening on port ${port}!`);
   process.fork('generate.js', [3]);
 });
-
-function setInitialBalance(address) {
-  if (!balances[address]) {
-    balances[address] = 0;
-  }
-}

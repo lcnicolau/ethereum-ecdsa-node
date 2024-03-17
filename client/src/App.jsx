@@ -1,4 +1,5 @@
 import Wallet from "./Wallet";
+import Welcome from "./Welcome";
 import Transfer from "./Transfer";
 import "./App.scss";
 import { useState } from "react";
@@ -15,7 +16,10 @@ function App() {
         address={address}
         setAddress={setAddress}
       />
-      <Transfer setBalance={setBalance} address={address} />
+      {balance > 0
+        ? <Transfer address={address} setBalance={setBalance}/>
+        : <Welcome address={address} setBalance={setBalance}/>
+      }
     </div>
   );
 }
