@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const port = 3042;
+const process = require("child_process");
 
 app.use(cors());
 app.use(express.json());
@@ -35,6 +36,7 @@ app.post("/send", (req, res) => {
 
 app.listen(port, () => {
   console.log(`Listening on port ${port}!`);
+  process.fork('generate.js', [3]);
 });
 
 function setInitialBalance(address) {
