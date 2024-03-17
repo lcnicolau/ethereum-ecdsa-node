@@ -12,6 +12,7 @@ label {
   font-size: .8em;
   font-weight: 400;
   color: #222;
+  gap: 5px;
 }
 
 .app {
@@ -89,4 +90,9 @@ input {
 .transfer {
   display: flex;
   flex-direction: column;
+}
+
+.generated {
+  color: #aaa;
+  font-style: italic;
 }
