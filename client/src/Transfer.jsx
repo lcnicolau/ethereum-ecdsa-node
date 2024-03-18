@@ -1,49 +1,90 @@
+import { secp256k1 as ecdsa } from "ethereum-cryptography/secp256k1";
+import { keccak256 } from "ethereum-cryptography/keccak";
+import { utf8ToBytes } from "ethereum-cryptography/utils";
+
 import { useState } from "react";
 import server from "./server";
 
-function Transfer({ address, setBalance }) {
-  const [sendAmount, setSendAmount] = useState("");
+function Transfer({ privateKey, address, setBalance }) {
   const [recipient, setRecipient] = useState("");
+  const [amount, setAmount] = useState("");
+  const [payload, setPayload] = useState("");
 
-  const setValue = (setter) => (evt) => setter(evt.target.value);
+  async function hashAndSign(sender, recipient, amount) {
+    const transaction = {
+      sender: sender,
+      recipient: recipient,
+      amount: parseInt(amount),
+      timestamp: Date.now()
+    };
+    const data = JSON.stringify(transaction);
+    const hash = keccak256(utf8ToBytes(data));
+    const signature = ecdsa.sign(hash, privateKey);
+    return {
+      transaction,
+      signature
+    };
+  }
 
-  async function transfer(evt) {
-    evt.preventDefault();
+  async function onChange(evt) {
+    const newRecipient = (evt.target.type === 'text') ? evt.target.value : recipient;
+    setRecipient(newRecipient);
 
-    try {
+    const newAmount = (evt.target.type === 'number') ? evt.target.value : amount;
+    setAmount(newAmount);
+
+    if (newRecipient && newAmount) {
+      hashAndSign(address, newRecipient, newAmount).then(payload => setPayload(payload));
+    } else {
+      setPayload("");
+    }
+  }
+
+  async function transfer(payload) {
+    if (payload) {
       const {
         data: { balance },
-      } = await server.post(`send`, {
-        sender: address,
-        amount: parseInt(sendAmount),
-        recipient,
+      } = await server.post(`send`, payload);
+      return balance;
+    } else {
+      console.log("Must provide valid transaction data");
+    }
+  }
+
+  async function onSubmit(evt) {
+    evt.preventDefault();
+    try {
+      transfer(payload).then(balance => {
+        setBalance(balance);
+        setRecipient("");
+        setAmount("");
+        setPayload("");
       });
-      setBalance(balance);
     } catch (ex) {
-      alert(ex.response.data.message);
+      console.log(ex);
     }
   }
 
   return (
-    <form className="container transfer" onSubmit={transfer}>
+    <form className="container transfer" onSubmit={onSubmit}>
       <h1>Send Transaction</h1>
 
       <label>
-        Send Amount
-        <input
-          placeholder="1, 2, 3..."
-          value={sendAmount}
-          onChange={setValue(setSendAmount)}
-        ></input>
+        Recipient:
+        <input placeholder="Type an address, for example: 0x2" value={recipient} onChange={onChange} required></input>
       </label>
 
       <label>
-        Recipient
-        <input
-          placeholder="Type an address, for example: 0x2"
-          value={recipient}
-          onChange={setValue(setRecipient)}
-        ></input>
+        Amount:
+        <input type="number" min="0" placeholder="1, 2, 3..." value={amount} onChange={onChange} required></input>
+      </label>
+
+      <label>
+        Payload:
+        {payload
+          ? <pre className="generated">{JSON.stringify(payload, undefined, 2)}</pre>
+          : <span className="generated">Will be generated from the transaction data and signed with your private key</span>
+        }
       </label>
 
       <input type="submit" className="button" value="Transfer" />
