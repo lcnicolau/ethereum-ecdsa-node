@@ -5,17 +5,30 @@ import { utf8ToBytes } from "ethereum-cryptography/utils";
 import { useState } from "react";
 import server from "./server";
 
+let timeout;
+
 function Transfer({ privateKey, address, setBalance }) {
   const [recipient, setRecipient] = useState("");
   const [amount, setAmount] = useState("");
   const [payload, setPayload] = useState("");
 
-  async function hashAndSign(sender, recipient, amount) {
+  async function getTransactionCount(address) {
+    if (address) {
+      const {
+        data: { count },
+      } = await server.get(`history/${address}`);
+      return count;
+    } else {
+      return 0;
+    }
+  }
+
+  async function hashAndSign(sender, recipient, amount, nonce) {
     const transaction = {
       sender: sender,
       recipient: recipient,
       amount: parseInt(amount),
-      timestamp: Date.now()
+      nonce: nonce
     };
     const data = JSON.stringify(transaction);
     const hash = keccak256(utf8ToBytes(data));
@@ -34,7 +47,12 @@ function Transfer({ privateKey, address, setBalance }) {
     setAmount(newAmount);
 
     if (newRecipient && newAmount) {
-      hashAndSign(address, newRecipient, newAmount).then(payload => setPayload(payload));
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        getTransactionCount(address)
+          .then(nonce => hashAndSign(address, newRecipient, newAmount, nonce))
+          .then(payload => setPayload(payload))
+      }, 500);
     } else {
       setPayload("");
     }
