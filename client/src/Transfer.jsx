@@ -23,11 +23,11 @@ function Transfer({ privateKey, address, setBalance }) {
     }
   }
 
-  async function hashAndSign(sender, recipient, amount, nonce) {
+  async function hashAndSign(from, to, value, nonce) {
     const transaction = {
-      sender: sender,
-      recipient: recipient,
-      amount: parseInt(amount),
+      from: from,
+      to: to,
+      value: parseInt(value),
       nonce: nonce
     };
     const data = JSON.stringify(transaction);
@@ -40,17 +40,17 @@ function Transfer({ privateKey, address, setBalance }) {
   }
 
   async function onChange(evt) {
-    const newRecipient = (evt.target.type === 'text') ? evt.target.value : recipient;
-    setRecipient(newRecipient);
+    const to = (evt.target.type === 'text') ? evt.target.value : recipient;
+    setRecipient(to);
 
-    const newAmount = (evt.target.type === 'number') ? evt.target.value : amount;
-    setAmount(newAmount);
+    const value = (evt.target.type === 'number') ? evt.target.value : amount;
+    setAmount(value);
 
-    if (newRecipient && newAmount) {
+    if (to && value) {
       clearTimeout(timeout);
       timeout = setTimeout(() => {
         getTransactionCount(address)
-          .then(nonce => hashAndSign(address, newRecipient, newAmount, nonce))
+          .then(count => hashAndSign(address, to, value, count))
           .then(payload => setPayload(payload))
       }, 500);
     } else {

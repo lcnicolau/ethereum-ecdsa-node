@@ -34,7 +34,7 @@ app.get("/history/:address", (req, res) => {
 app.post("/send", (req, res) => {
   const { transaction, signature } = req.body;
 
-  const { sender, recipient, amount, nonce } = transaction;
+  const { from, to, value, nonce } = transaction;
   const data = JSON.stringify(transaction);
   const hash = keccak256(utf8ToBytes(data));
 
@@ -45,21 +45,21 @@ app.post("/send", (req, res) => {
   const pkHash = keccak256(publicKey.slice(1)).slice(-20);
   const address = '0x' + toHex(pkHash);
 
-  if (address !== sender) {
+  if (address !== from) {
     res.status(400).send({ message: "Sender address does not match" });
   } else if (secp256k1.verify(sig, hash, publicKey) !== true) {
     res.status(400).send({ message: "Invalid signature" });
-  } else if (nonce !== (history[sender] || []).length) {
+  } else if (nonce !== (history[from] || []).length) {
     res.status(400).send({ message: "Invalid nonce" });
-  } else if (balances[sender] < amount) {
+  } else if (balances[from] < value) {
     res.status(400).send({ message: "Not enough funds" });
   } else {
-    balances[sender] -= amount;
-    balances[recipient] = balances[recipient] || 0;
-    balances[recipient] += amount;
-    history[sender] = history[sender] || [];
-    history[sender].push(transaction);
-    res.send({ balance: balances[sender] });
+    balances[from] -= value;
+    balances[to] = balances[to] || 0;
+    balances[to] += value;
+    history[from] = history[from] || [];
+    history[from].push(transaction);
+    res.send({ balance: balances[from] });
   }
 });
 
