@@ -42,7 +42,7 @@ function Wallet({ privateKey, setPrivateKey, address, setAddress, balance, setBa
 
   return (
     <div className="container wallet">
-      <h1>Your Wallet</h1>
+      <h2>Your Wallet</h2>
 
       <label>
         Private Key:

@@ -85,7 +85,7 @@ function Transfer({ privateKey, address, setBalance }) {
 
   return (
     <form className="container transfer" onSubmit={onSubmit}>
-      <h1>Send Transaction</h1>
+      <h2>Send Transaction</h2>
 
       <label>
         Recipient:

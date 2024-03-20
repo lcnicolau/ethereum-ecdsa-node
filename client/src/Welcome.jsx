@@ -24,7 +24,7 @@ function Welcome({ address, setBalance }) {
 
   return (
     <form className="container welcome" onSubmit={onSubmit}>
-      <h1>Welcome</h1>
+      <h2>Welcome</h2>
       <label>You will receive 100 coins for trying this app - for free!</label>
       <input type="submit" className="button" value="Claim"/>
     </form>
