@@ -11,19 +11,19 @@ const process = require("child_process");
 app.use(cors());
 app.use(express.json());
 
-const balances = {};
+const balance = {};
 const history = {};
 
 app.get("/welcome/:address", (req, res) => {
   const { address } = req.params;
-  balances[address] = balances[address] || 100;
+  balance[address] = balance[address] || 100;
   history[address] = history[address] || [];
-  res.send({ balance: balances[address] });
+  res.send({ balance: balance[address] });
 });
 
 app.get("/balance/:address", (req, res) => {
   const { address } = req.params;
-  res.send({ balance: balances[address] || 0 });
+  res.send({ balance: balance[address] || 0 });
 });
 
 app.get("/history/:address", (req, res) => {
@@ -51,15 +51,15 @@ app.post("/send", (req, res) => {
     res.status(400).send({ message: "Invalid signature" });
   } else if (nonce !== (history[from] || []).length) {
     res.status(400).send({ message: "Invalid nonce" });
-  } else if (balances[from] < value) {
+  } else if (balance[from] < value) {
     res.status(400).send({ message: "Not enough funds" });
   } else {
-    balances[from] -= value;
-    balances[to] = balances[to] || 0;
-    balances[to] += value;
+    balance[from] -= value;
+    balance[to] = balance[to] || 0;
+    balance[to] += value;
     history[from] = history[from] || [];
     history[from].push(transaction);
-    res.send({ balance: balances[from] });
+    res.send({ balance: balance[from] });
   }
 });
 
